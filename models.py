@@ -9,6 +9,7 @@ class QuestionSchema(BaseModel):
     options: List[str]
     correct_answer: str
     explanation: Optional[str] = None
+    difficulty: Optional[str] = "medium"  # easy, medium, hard
 
     class Config:
         from_attributes = True
@@ -27,6 +28,7 @@ class QuizResponse(BaseModel):
     title: str
     summary: str
     questions: List[QuestionSchema]
+    related_topics: Optional[List[str]] = []
     created_at: datetime
 
     class Config:

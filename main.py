@@ -103,7 +103,8 @@ def generate_quiz_endpoint(
             scraped_content=article_data["content"][:1000],
             full_quiz_data=json.dumps({
                 "summary": quiz_data["summary"],
-                "questions": quiz_data["questions"]
+                "questions": quiz_data["questions"],
+                "related_topics": quiz_data.get("related_topics", [])
             })
         )
 
@@ -118,6 +119,7 @@ def generate_quiz_endpoint(
             title=quiz_db.title,
             summary=quiz_data["summary"],
             questions=[QuestionSchema(**q) for q in quiz_data["questions"]],
+            related_topics=quiz_data.get("related_topics", []),
             created_at=quiz_db.date_generated
         )
 
@@ -170,6 +172,7 @@ def get_quiz_by_id(quiz_id: int, db: Session = Depends(get_db)):
             title=quiz.title,
             summary=quiz_data.get("summary", ""),
             questions=[QuestionSchema(**q) for q in quiz_data.get("questions", [])],
+            related_topics=quiz_data.get("related_topics", []),
             created_at=quiz.date_generated
         )
 

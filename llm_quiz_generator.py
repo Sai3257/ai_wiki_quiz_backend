@@ -53,18 +53,25 @@ Generate a JSON response with the following structure:
             "question": "The question text",
             "options": ["Option A", "Option B", "Option C", "Option D"],
             "correct_answer": "The correct option text (must match one of the options exactly)",
-            "explanation": "Brief explanation of why this is correct"
+            "explanation": "Brief explanation of why this is correct",
+            "difficulty": "easy|medium|hard"
         }}
-    ]
+    ],
+    "related_topics": ["Related Topic 1", "Related Topic 2", "Related Topic 3", "Related Topic 4", "Related Topic 5"]
 }}
 
 Requirements:
 - Generate exactly {num_questions} questions
 - Each question must have exactly 4 options
 - Questions should cover different aspects of the article
-- Make questions challenging but fair
+- Vary difficulty levels: include easy, medium, and hard questions
+- Difficulty guidelines:
+  * easy: Basic facts and definitions from the article
+  * medium: Requires understanding and connecting information
+  * hard: Requires deep analysis or inference
 - Ensure correct_answer matches one of the options exactly
 - Provide clear explanations
+- Generate 5-7 related Wikipedia topics for further reading (topics that are mentioned or related to the article)
 
 Return ONLY the JSON, no additional text."""
         
@@ -110,6 +117,7 @@ def generate_fallback_quiz(content: str, title: str, num_questions: int = 5) -> 
     
     # Generate simple questions based on content
     questions = []
+    difficulties = ["easy", "medium", "hard"]
     
     # Extract some key facts from content
     paragraphs = content.split('\n\n')
@@ -128,7 +136,8 @@ def generate_fallback_quiz(content: str, title: str, num_questions: int = 5) -> 
                     "None of the above"
                 ],
                 "correct_answer": f"Information from paragraph {i+1}",
-                "explanation": f"This information is found in the article content about {title}."
+                "explanation": f"This information is found in the article content about {title}.",
+                "difficulty": difficulties[i % 3]  # Rotate through difficulties
             })
     
     # If we don't have enough questions, add generic ones
@@ -142,12 +151,26 @@ def generate_fallback_quiz(content: str, title: str, num_questions: int = 5) -> 
                 "Multiple topics"
             ],
             "correct_answer": title,
-            "explanation": f"The article is about {title}."
+            "explanation": f"The article is about {title}.",
+            "difficulty": "easy"
         })
+    
+    # Generate basic related topics (extract capitalized phrases as potential topics)
+    words = content.split()
+    related_topics = []
+    for i, word in enumerate(words[:500]):  # Check first 500 words
+        if word[0].isupper() and len(word) > 3 and word != title:
+            if word not in related_topics and len(related_topics) < 5:
+                related_topics.append(word)
+    
+    # Add some generic related topics if we don't have enough
+    if len(related_topics) < 3:
+        related_topics.extend([f"{title} history", f"{title} applications", "Related concepts"])
     
     return {
         "summary": summary if summary else f"This article is about {title}.",
-        "questions": questions[:num_questions]
+        "questions": questions[:num_questions],
+        "related_topics": related_topics[:7]
     }
 
 
